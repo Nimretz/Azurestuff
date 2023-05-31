@@ -2,7 +2,7 @@
 #Import-Module AzureAD
 
 # Run the Get-AzureADApplication cmdlet to retrieve a list of all Azure AD applications
-Write-Host "Retrieving list of Azure AD applications..."
+Write-Host "[*] Retrieving list of Azure AD applications..."
 $applications = Get-AzureADApplication -All $true
 
 # Create an empty array to store the output
@@ -14,35 +14,28 @@ foreach ($application in $applications) {
     $objectId = $application.ObjectId
     $displayName = $application.DisplayName
     
-    Write-Host "Retrieving properties for $($displayName) ($($objectId))..."
+    Write-Host "[+]Retrieving properties for $($displayName) ($($objectId))"
     
     # Retrieve the application's properties
-    $replyUrls = Get-AzureADApplicationProperty -ObjectId $objectId -PropertyDisplayName "Reply URL"
-    $wwwHomePage = Get-AzureADApplicationProperty -ObjectId $objectId -PropertyDisplayName "Homepage URL"
-    $homePage = Get-AzureADApplicationProperty -ObjectId $objectId -PropertyDisplayName "Home page URL"
+    $properties = Get-AzureADApplication -ObjectId $objectId | Select-Object -Property ReplyUrls, WwwHomepage, Homepage   
     
-    # If any of the properties are null, set them to "none"
-    if ($replyUrls -eq $null) { $replyUrls = "none" }
-    if ($wwwHomePage -eq $null) { $wwwHomePage = "none" }
-    if ($homePage -eq $null) { $homePage = "none" }
-    
-    # Create a hashtable representing the current application's output
-    $applicationOutput = @{
-        "DisplayName" = $displayName
-        "ObjectId" = $objectId
-        "ReplyUrls" = $replyUrls
-        "WwwHomePage" = $wwwHomePage
-        "HomePage" = $homePage
+    # Create a custom object with properties
+    $customObject = [PSCustomObject]@{
+        DisplayName = $displayName
+        ObjectId = $objectId
+        Properties = @{
+            ReplyUrls = $properties.ReplyUrls
+            WwwHomePage = $properties.WwwHomepage
+            HomePage = $properties.HomePage
+        }
     }
     
-    # Add the hashtable to the output array
-    $output += $applicationOutput
+    # Add the custom object to the output array
+    $output += $customObject
 }
 
-# Print the output to the console
-$output | Format-Table DisplayName, ObjectId, ReplyUrls, WwwHomePage, HomePage
+# Convert the output array to JSON
+$jsonOutput = $output | ConvertTo-Json -Depth 4
 
-# Save the output to a file
-$output | Export-Csv -Path "C:\output.csv" -NoTypeInformation
-
-Write-host "Output saved to C:\output.csv."
+# Print the JSON output
+Write-Host $jsonOutput

@@ -1,3 +1,4 @@
+#Load Az powershell module
 $azNsgs = Get-AzNetworkSecurityGroup | Where-Object {$_.Id -ne $NULL}
 foreach ( $azNsg in $azNsgs ) {
 # Export custom rules

@@ -37,5 +37,7 @@ foreach ($application in $applications) {
 # Convert the output array to JSON
 $jsonOutput = $output | ConvertTo-Json -Depth 4
 
-# Print the JSON output
-Write-Host $jsonOutput
+$filePath = "C:\plzure.json"  # Update this with your desired file path
+
+$jsonOutput | Set-Content -Path $filePath
+Write-Host "[*] JSON data saved to $filePath"
